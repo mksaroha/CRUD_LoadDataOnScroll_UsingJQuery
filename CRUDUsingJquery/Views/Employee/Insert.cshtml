@@ -1,0 +1,314 @@
+﻿
+@{
+    ViewBag.Title = "Insert";
+}
+
+<h2 style="text-align:center"><u>Employee Record</u></h2>
+<br />
+<br />
+
+@*<table>
+        <tr><td>Name:</td><td><input type="text" id="txtname"/></td></tr>
+        <tr><td>Age:</td><td><input type="text" id="txtage"/> </td></tr>
+        <tr><td>Select Department:</td><td><select id="ddldepartment"><option value="0" selected>Select Department</option></select></td></tr>
+        <tr><td><input type="button" id="btnsave" value="Save"/></td></tr>
+    </table>
+    <br />
+    <br />
+*@
+
+<input type="button" id="button1" value="Add Employee Record" class="btn btn-primary" />
+
+<div style="float:right">
+    <input type="text" id="txtsearch" style="width:300px;height:32px;border: 1px solid #ccc;border-radius: 4px;box-sizing: border-box;" placeholder="Employee By Name,Department" />&emsp;<input type="button" id="btnsearch" class="btn btn-primary" value="Search Record" />
+</div>
+
+<br />
+<br />
+
+
+<table id="tbl" class="table table-bordered table-hover table-striped">
+    <thead>
+        <tr>
+            <th>EmployeeID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>DepartmentName</th>
+            <th colspan="2">Action</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div class="row text-center" style="padding-top:20px;" id="DivLoading"> <span id="loader" style="display:none"><img src="~/Content/Images/loading.gif" /></span></div>
+<div class="row text-center text-primary" style="padding-top:20px;" id="#nodata"><span id="noloading" style="display:none">No more data avaliable!!! </span></div>
+
+@*<div class="row text-center" style="padding-top:20px; display:none" id="loader">  <input type="button" id="btnload" class="btn btn-primary" value="Load More Data" /></div>*@
+
+
+
+
+<!-- The Modal -->
+<div class="modal fade" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Employee Form</h4>
+                <button type="button" class="close" data-dismiss="modal">×</button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+                <div class="container">
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" class="form-control" id="txtname" placeholder="Enter Name" name="name">
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Age:</label>
+                            <input type="text" class="form-control" id="txtage" placeholder="Enter Age" name="age">
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Select Department:</label>
+                            <select id="ddldepartment" class="form-control"><option value="0" selected>Select Department</option></select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnsave">Save</button>
+                    </form>
+                </div>
+            </div>
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+@section scripts{
+
+    <script>
+        $(document).ready(function () {
+
+            BindDepartment();
+            //BindData();          
+            //////////////----------------------------////////////////////////                  
+
+            var currentPageNumber = 1;
+            loadPageData(currentPageNumber);
+
+            $(window).scroll(function () {
+                if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+                    currentPageNumber += 1;
+                    loadPageData(currentPageNumber);
+                    //alert('Scrolled is at the Bottom');
+                }
+            });
+
+            ///-------------------------------------------///////////
+
+            //window.onbeforeunload = function () {
+            //    window.scrollTo(0, 0);
+            //};
+            //$(window).scrollTop(0);           
+            //$(window).scroll(function () {
+            //    if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+                    
+            //        $('#btnload').click(function () {
+            //            currentPageNumber += 1;
+            //            loadPageData(currentPageNumber);
+            //        });                  
+                    
+            //    }
+            //});
+
+            //$(window).on("scroll", function () {
+            //    var scrollHeight = $(document).height();
+            //    var scrollPos = $(window).height() + $(window).scrollTop();
+
+            //    if ((scrollHeight - scrollPos) / scrollHeight == 0){
+            //        //currentPageNumber += 1;
+            //        //loadPageData(currentPageNumber);
+            //        //alert('Scrolled is at the Bottom');
+            //        $(".btn btn-primary").click();
+            //    }
+            //});
+            /////------------------------------------/////////////////
+        });
+                       
+
+        function loadPageData(currentPage) {
+            $.ajax({
+                url: '/Employee/GetEmployees',
+                method: 'GET',
+                dataType: "json",
+                data: { pageNumber: currentPage, pageSize: 3 },
+                success: function (data) {
+                    if (data != 0)
+                    {
+                        $.each(data,function (index, emp) {
+                            var row = '<tr> <td>' + emp.EmployeeID + '</td> <td>' + emp.Name + '</td> <td>' + emp.Age + '</td> <td>'+emp.DepartmentName+'<td><input type="button" value="Edit" class="btn btn-danger" onclick=EditData(' + emp.EmployeeID + ') /></td>  <td><input type="button" value="Delete" class="btn btn-danger"  onclick=DeleteData(' + emp.EmployeeID + ') /></td> </tr>';
+                            $("#tbl tbody").append(row);
+                        });
+                        $("#loader").show();
+
+                    }
+                    else
+                    {
+                        $('#loader').hide();
+                        $("#noloading").show();
+                    }
+
+                },
+                //beforeSend: function () {
+                //    $("#progress").show();
+                //},
+                //complete: function () {
+                //    $("#progress").hide();
+                //},
+                error: function (err) {
+                    $('#loader').hide();
+                    alert(err);
+                }
+            });
+        }
+
+
+
+        function BindData() {
+            $.ajax({
+                url: '/Employee/Get',
+                type: 'GET',
+                data: {},
+                success: function (p) {
+                    $.each(p, function (index, obj) {
+                        var row = '<tr> <td>' + obj.Name + '</td> <td>' + obj.Age + '</td> <td>' + obj.DepartmentName + '</td> <td><input type="button" value="Edit" class="btn btn-danger" onclick=EditData(' + obj.EmployeeID + ') /></td>  <td><input type="button" value="Delete" class="btn btn-danger"  onclick=DeleteData(' + obj.EmployeeID + ') /></td> </tr>'
+                        $("#tbl tbody").append(row);
+
+                        //$.each(data, function (key, value) {
+                        //    var html = '<tr>' +
+                        //        '<td>' + value.hotel_id + '</td>' +
+                        //        '<td>' + value.available_date + '</td>' +
+                        //    '</tr>';
+
+                        //    $('#datatable tr').first().after(html);
+                        //});
+
+
+                        //$('#tbl').find('tr:gt(0)').remove();
+                        //for (var i = 0; i < p.length; i++) {
+                        //    $('#tbl').append('<tr> <td>' + p[i].Name + '</td> <td>' + p[i].Age + '</td> <td>' + p[i].DepartmentName + '</td> <td><input type="button" value="Edit" class="btn btn-danger" onclick=EditData(' + p[i].EmployeeID + ') /></td>  <td><input type="button" value="Delete" class="btn btn-danger"  onclick=DeleteData(' + p[i].EmployeeID + ') /></td> </tr>')
+                    });
+                },
+                error: function () {
+                    alert('Record not find!');
+                }
+
+            });
+        }
+
+
+
+        function BindDepartment() {
+            $.ajax({
+                url: '/Employee/GetDepartment',
+                type: 'GET',
+                data: {},
+                success: function (p) {
+                    for (var i = 0; i < p.length; i++) {
+                        $("#ddldepartment").append($('<option/>').attr("value", p[i].DepartmentID).text(p[i].DepartmentName));
+                    }
+                },
+                error: function () {
+                    alert('Department not Bind!!!');
+                }
+            });
+        }
+
+
+        var KKK = 0;
+        $("#btnsave").click(function () {
+            $.ajax({
+                url: '/Employee/Insert',
+                type: 'POST',
+                data: { EmployeeID: KKK, Name: $("#txtname").val(), Age: $("#txtage").val(), DepartmentID: $('#ddldepartment').val() },
+                success: function (p) {
+                    alert('Record Insert/Update Successfully!!!');
+                    BindData();
+                },
+                error: function () {
+                    alert('Record not Inserted!!!');
+                }
+            });
+        });
+
+
+        $('#button1').click(function () {
+            $("#myModal").modal();
+        });
+
+
+        function DeleteData(id) {
+            if (confirm("Are you sure...?")) {
+                $.ajax({
+                    url: '/Employee/Delete',
+                    type: 'GET',
+                    data: { EmployeeID: id },
+                    success: function () {
+                        alert('Record Delete Successfully!!');
+                        BindData();
+                    },
+                    error: function () {
+                        alert('Record Not Delete Successfully!!');
+                    }
+                });
+            }
+            return false;
+        }    
+
+        
+        function EditData(id) {
+            $.ajax({
+                url: '/Employee/Edit',
+                type: 'get',
+                data: { EmployeeID: id },
+                success: function (p) {
+                    $("#txtname").val(p[0].Name);
+                    $("#txtage").val(p[0].Age);
+                    $("#ddldepartment option:selected").val(p[0].DepartmentID);
+                    $("#ddldepartment option:selected").text(p[0].DepartmentName);
+                    $("#myModal").modal('show');
+                    KKK = id;
+                }
+            });
+        }
+
+        $('#btnsearch').click(function () {
+            $.ajax({
+                url: '/Employee/GetEmployee',
+                type: 'GET',
+                data: { Name: $('#txtsearch').val(), DepartmentName: $('#txtsearch').val() },
+                success: function (p) {
+                    $('#tbl').find('tr:gt(0)').remove();
+                    for (var i = 0; i < p.length; i++) {
+                        $('#tbl').append('<tr> <td>' + p[i].Name + '</td> <td>' + p[i].Age + '</td> <td>' + p[i].DepartmentName + '</td> <td><input type="button" value="Edit" class="btn btn-danger" onclick=EditData(' + p[i].EmployeeID + ') /></td>  <td><input type="button" value="Delete" class="btn btn-danger"  onclick=DeleteData(' + p[i].EmployeeID + ') /></td> </tr>')
+                    }
+                },
+                error: function () {
+                    alert('Record not found');
+                }
+            })
+        });
+
+    </script>
+}
+
+
+
+

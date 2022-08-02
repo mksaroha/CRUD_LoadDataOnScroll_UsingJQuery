@@ -1,0 +1,78 @@
+USE [Practice]
+GO
+
+/****** Object:  Table [dbo].[tblEmployee]    Script Date: 3/25/2022 6:30:47 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[tblEmployee](
+	[EmployeeID] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](50) NULL,
+	[Age] [int] NULL,
+	[DepartmentID] [int] NULL,
+ CONSTRAINT [PK_tblEmployee] PRIMARY KEY CLUSTERED 
+(
+	[EmployeeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[tblEmployee]  WITH CHECK ADD  CONSTRAINT [FK_tblEmployee_tblDepartment] FOREIGN KEY([DepartmentID])
+REFERENCES [dbo].[tblDepartment] ([DepartmentID])
+GO
+
+ALTER TABLE [dbo].[tblEmployee] CHECK CONSTRAINT [FK_tblEmployee_tblDepartment]
+GO
+
+
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[tblDepartment](
+	[DepartmentID] [int] NOT NULL,
+	[DepartmentName] [nvarchar](50) NULL,
+ CONSTRAINT [PK_tblDepartment] PRIMARY KEY CLUSTERED 
+(
+	[DepartmentID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER proc [dbo].[USP_Get1AllEmployees]
+@PageNumber int,
+@PageSize int
+as
+Begin
+ Declare @StartRow int
+ Declare @EndRow int
+
+ Set @StartRow = ((@PageNumber - 1) * @PageSize) + 1
+ Set @EndRow = @PageNumber * @PageSize;
+
+ WITH RESULT AS
+ (
+   SELECT e.EmployeeID, e.Name, e.Age,d.DepartmentName,
+   ROW_NUMBER() OVER (ORDER BY EmployeeID ASC) AS ROWNUMBER
+   From tblEmployee as e inner join tblDepartment as d on e.DepartmentID=d.DepartmentID
+ )
+ SELECT * 
+ FROM RESULT
+ WHERE ROWNUMBER BETWEEN @StartRow AND @EndRow
+End
+
+
+

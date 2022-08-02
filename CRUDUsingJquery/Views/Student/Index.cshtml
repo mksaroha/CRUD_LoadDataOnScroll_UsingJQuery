@@ -1,0 +1,110 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Student Record</h2>
+
+<div>
+    <table>             
+        <tr><td>Name</td><td><input type="text" id="txtname" /></td></tr>
+        <tr><td>Age</td><td><input type="text" id="txtage" /></td></tr>
+        <tr><td><input type="button" id="btnsave" value="Save" onclick="SaveData()"></td><td><input type="button" value="Refresh" /></td></tr>
+    </table>
+</div>
+
+<br />
+<br />
+
+<table border="1"  id="tbl" class="table ">
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Age</th>
+        <th colspan="2">Action</th>
+
+    </tr>
+
+</table>
+
+
+@section scripts{
+
+    @Scripts.Render("~/bundles/jquery")
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            BindData();
+        });
+
+        function BindData() {
+            $.ajax({
+                url: '/Student/Get',
+                type: 'get',
+                data: {},
+                success: function (p) {
+                    $("#tbl").find("tr:gt(0)").remove();
+                    for (var i = 0; i < p.length; i++) {
+                        $("#tbl").append('<tr> <td>' + p[i].sid + '</td>  <td>' + p[i].sname + '</td>  <td>' + p[i].sage + '</td> <td><input  type="button" value="Edit" onclick="EditData(' + p[i].sid + ')" </td> <td><input type="button" value="Delete" onclick="DeleteData(' + p[i].sid + ')"></td> </tr>');
+                    }
+                },
+                error: function () {
+                    alert('Record not Show !!!');
+                }
+            });
+        }
+
+
+
+        function SaveData() {
+            $.ajax({
+                url: '/Student/Insert',
+                type: 'post',
+                data: { sid: KKK, sname: $("#txtname").val(), sage: $("#txtage").val() },
+                success: function (p) {
+                    alert('Record Insert/Update Successfully!!!');
+                    BindData();
+                },
+                error: function () {
+                    alert('Record not Inserted!!!');
+                }
+            });
+        }
+
+        function DeleteData(id)
+        {
+            $.ajax({
+                url: '/Student/Delete',
+                type: 'post',
+                data: { sid: id },
+                success: function () {
+                    alert('Record Deleted Successfully!');
+                    BindData();
+                },
+                error: function () {
+                    alert('Record not Deleted!');
+                }
+            });
+        }
+
+        var KKK = 0;
+        function EditData(id) {
+            $.ajax({
+                url: '/Student/Edit',
+                type: 'GET',
+                data: { sid: id },
+                success: function (p) {
+                    //p = JSON.parse(p);
+                    //console.log(p);
+                    $("#txtname").val(p[0].sname);
+                    $("#txtage").val(p[0].sage);                    
+                    $("#btnsave").val("Update");                    
+                    KKK = id;
+                }
+            });
+        }
+
+    </script>
+}
+
+
